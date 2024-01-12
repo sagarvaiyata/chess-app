@@ -1,0 +1,11 @@
+/* main-page.component.css */
+.iframe-container {
+    display: flex;
+    justify-content: space-around;
+}
+.chess-iframe {
+    margin: 50px;
+    width: 800px;
+    height: 800px;
+    border: black;
+}

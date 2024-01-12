@@ -1,0 +1,8 @@
+<!-- chess-board.component.html -->
+<ngx-chess-board 
+  #board
+  [size]="boardSize" 
+  [lightTileColor]="lightTileColor" 
+  [darkTileColor]="darkTileColor">
+</ngx-chess-board>
+<button (click)="onPlayerMove()">Confirm Move</button>
