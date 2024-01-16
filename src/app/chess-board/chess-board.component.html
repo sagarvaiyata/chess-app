@@ -3,6 +3,6 @@
   #board
   [size]="boardSize" 
   [lightTileColor]="lightTileColor" 
-  [darkTileColor]="darkTileColor">
+  [darkTileColor]="darkTileColor"
+  (moveChange)="onMoveMade($event)">
 </ngx-chess-board>
-<button (click)="onPlayerMove()">Confirm Move</button>

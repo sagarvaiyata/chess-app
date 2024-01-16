@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxChessBoardView } from 'ngx-chess-board';
 @Component({
@@ -6,18 +6,17 @@ import { NgxChessBoardView } from 'ngx-chess-board';
   templateUrl: './main-page.component.html',
   styleUrls: ['./main-page.component.css']
 })
-export class MainPageComponent implements OnInit{
-  boardSize = 600; 
-  lightTileColor = '#EFDAB7';
-  darkTileColor = '#B48866'; 
-  boardId!: number;
-  boardState!: any; 
-  board!: NgxChessBoardView;
-  constructor(private route: ActivatedRoute) { }
-  ngOnInit() {
-    this.route.params.subscribe(params => {
-      this.boardId = +params['id'];
-    });
+export class MainPageComponent {
+  @ViewChild('iframe1') iframe1!: ElementRef<HTMLIFrameElement>;
+  @ViewChild('iframe2') iframe2!: ElementRef<HTMLIFrameElement>;
+  @Output() moveMade = new EventEmitter<string>();
+  onMove(fen: string, origin: 'iframe1' | 'iframe2'): void {
+    const targetIframe = origin === 'iframe1' ? this.iframe2 : this.iframe1;
+    
+    console.log(targetIframe);
+    targetIframe.nativeElement.contentWindow?.postMessage({ fen: fen }, '*');
   }
-
+  onChessBoardMove(fen: Event) {
+    console.log(fen);
+  }
 }

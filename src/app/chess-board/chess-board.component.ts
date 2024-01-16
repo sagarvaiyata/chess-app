@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef, AfterViewInit, OnChanges, SimpleChanges  } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter, AfterViewInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NgxChessBoardView, NgxChessBoardService, NgxChessBoardModule } from 'ngx-chess-board';
-
+import { NgxChessBoardView, NgxChessBoardService } from 'ngx-chess-board';
+import { ChessGameService } from '../services/chess-board.service';
 @Component({
   selector: 'app-chess-board',
   templateUrl: './chess-board.component.html'
@@ -16,15 +16,22 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   lastFen!: string; 
 
   @ViewChild('board', { static: false }) board!: NgxChessBoardView;
+  @Output() moveMade = new EventEmitter<any[]>();
 
-  constructor(private cdr: ChangeDetectorRef, private route: ActivatedRoute) { }
+  constructor(private route: ActivatedRoute, private ngxChessBoardService: NgxChessBoardService) { }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.boardId = +params['id' ];
       this.boardState = {};
-      window.addEventListener('message', this.receiveMessage.bind(this), false);  
     });
+
+  }
+
+  onMoveMade(event: any) {
+    console.log(event, this.boardId);
+    let output = [event, this.boardId];
+    this.moveMade.emit(output);
   }
 
   flipBoard() {
@@ -33,35 +40,9 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  receiveMessage(event: MessageEvent) {
-    if (event.data && event.data.fen && event.data.targetBoardId === this.boardId) {
-      this.board.setFEN(event.data.fen); 
-    }
-  }
-
   ngAfterViewInit(){
-    this.lastFen = this.board.getFEN();
-    window.addEventListener('message', (event) => {
-      if (event.data && event.data.fen && event.data.targetBoardId === this.boardId) {
-        this.board.setFEN(event.data.fen);
-      }
-    }, false);
     if (this.boardId === 2) {
       this.flipBoard(); 
     }
   }
-
-  onPlayerMove() {
-    const currentFen = this.board.getFEN();
-    this.board.setFEN(currentFen);
-    if (currentFen !== this.lastFen) {
-      window.parent.postMessage({ boardId: this.boardId, fen: currentFen }, '*');
-      this.lastFen = currentFen;
-    }
-    this.board.setFEN(currentFen);
-    if (this.boardId === 2) {
-      this.flipBoard(); 
-    }
-  }
-
 }
