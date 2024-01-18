@@ -8,30 +8,31 @@ import { ChessGameService } from '../services/chess-board.service';
 })
 
 export class ChessBoardComponent implements OnInit, AfterViewInit {
-  boardSize = 600; 
-  lightTileColor = '#EFDAB7';
-  darkTileColor = '#B48866'; 
-  boardId!: number;
-  boardState!: any; 
-  lastFen!: string; 
+  boardSize: number = 600; 
+  lightTileColor: string = '#EFDAB7';
+  darkTileColor: string = '#B48866'; 
+  boardId: string = '1';
+  fenString: string = '';
 
   @ViewChild('board', { static: false }) board!: NgxChessBoardView;
-  @Output() moveMade = new EventEmitter<any[]>();
+  @Output() moveMade = new EventEmitter<any>();
 
-  constructor(private route: ActivatedRoute, private ngxChessBoardService: NgxChessBoardService) { }
+  constructor(private route: ActivatedRoute, private chessGameService: ChessGameService) { }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      this.boardId = +params['id' ];
-      this.boardState = {};
+      this.boardId = params['id' ];
     });
-
   }
 
   onMoveMade(event: any) {
-    console.log(event, this.boardId);
-    let output = [event, this.boardId];
-    this.moveMade.emit(output);
+    let output = event;
+    console.log(event);
+    if(event && event.fen){
+      const fen = event.fen;
+      const boardId = this.boardId;
+      this.chessGameService.updateBoard({ boardId, fen });
+    }
   }
 
   flipBoard() {
@@ -41,7 +42,7 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(){
-    if (this.boardId === 2) {
+    if (this.boardId === '2') {
       this.flipBoard(); 
     }
   }
