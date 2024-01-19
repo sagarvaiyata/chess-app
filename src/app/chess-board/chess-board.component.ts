@@ -23,14 +23,29 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
     this.route.params.subscribe(params => {
       this.boardId = params['id' ];
     });
+    this.chessGameService.boardUpdates$.subscribe((updates) => {
+      console.log(updates.get(this.boardId))
+      const fen = updates.get(this.boardId);
+      if (fen) {
+        this.board.setFEN(fen[1]);
+        console.log(fen)
+      }
+    });
   }
 
   onMoveMade(event: any) {
     let output = event;
+    const fen = event.fen;
+    const boardId = this.boardId;
     console.log(event);
+
+    if(this.boardId === '2' && event && event.fen){
+      this.board.setFEN(fen)
+      this.flipBoard();
+    }
+
+
     if(event && event.fen){
-      const fen = event.fen;
-      const boardId = this.boardId;
       this.chessGameService.updateBoard({ boardId, fen });
     }
   }
@@ -44,6 +59,7 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(){
     if (this.boardId === '2') {
       this.flipBoard(); 
+
     }
   }
 }

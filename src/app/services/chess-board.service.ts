@@ -9,7 +9,9 @@ export class ChessGameService {
     // Using a BehaviorSubject to maintain the latest state of each board.
     private boardUpdates = new BehaviorSubject<Map<string, string>>(new Map());
 
-    constructor() {}
+constructor() {}
+
+boardUpdates$ = this.boardUpdates.asObservable();
 
 // Method to receive updates from the board components
 updateBoard(update: ChessBoardUpdate): void {
