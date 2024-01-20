@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Output, EventEmitter, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxChessBoardView, NgxChessBoardService } from 'ngx-chess-board';
 import { ChessGameService } from '../services/chess-board.service';
@@ -12,39 +12,43 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   lightTileColor: string = '#EFDAB7';
   darkTileColor: string = '#B48866'; 
   boardId: string = '1';
+  activeBoardId: string = '1';
   fenString: string = '';
 
   @ViewChild('board', { static: false }) board!: NgxChessBoardView;
   @Output() moveMade = new EventEmitter<any>();
 
-  constructor(private route: ActivatedRoute, private chessGameService: ChessGameService) { }
+  constructor(
+    private route: ActivatedRoute, 
+    private chessGameService: ChessGameService, 
+    private cdr: ChangeDetectorRef
+    ) { }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.boardId = params['id' ];
     });
+
     this.chessGameService.boardUpdates$.subscribe((updates) => {
-      console.log(updates.get(this.boardId))
-      const fen = updates.get(this.boardId);
-      if (fen) {
-        this.board.setFEN(fen[1]);
-        console.log(fen)
-      }
+      this.chessGameService.activeBoard$.subscribe((activeBoardId) => {
+        this.activeBoardId = activeBoardId;
+      });
+      updates.forEach((fen, boardId) => {
+        if(fen){
+        
+          if(this.boardId === '2'){
+            this.board.setFEN(fen)
+            this.flipBoard();
+          }
+        }
+      })
+      
     });
   }
 
   onMoveMade(event: any) {
-    let output = event;
     const fen = event.fen;
     const boardId = this.boardId;
-    console.log(event);
-
-    if(this.boardId === '2' && event && event.fen){
-      this.board.setFEN(fen)
-      this.flipBoard();
-    }
-
-
     if(event && event.fen){
       this.chessGameService.updateBoard({ boardId, fen });
     }
@@ -57,9 +61,6 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(){
-    if (this.boardId === '2') {
-      this.flipBoard(); 
-
-    }
+    this.cdr.detectChanges();
   }
 }
