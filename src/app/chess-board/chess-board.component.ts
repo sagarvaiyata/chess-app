@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, Output, EventEmitter, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter, AfterViewInit, ChangeDetectorRef, HostListener  } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxChessBoardView, NgxChessBoardService } from 'ngx-chess-board';
-import { ChessGameService } from '../services/chess-board.service';
+import { ChessBoardEventData } from 'src/models/chessboard-event-data';
 @Component({
   selector: 'app-chess-board',
   templateUrl: './chess-board.component.html'
@@ -15,12 +15,11 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   activeBoardId: string = '1';
   fenString: string = '';
 
-  @ViewChild('board', { static: false }) board!: NgxChessBoardView;
+  @ViewChild('board') board!: NgxChessBoardView;
   @Output() moveMade = new EventEmitter<any>();
 
   constructor(
     private route: ActivatedRoute, 
-    private chessGameService: ChessGameService, 
     private cdr: ChangeDetectorRef
     ) { }
 
@@ -28,30 +27,17 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
     this.route.params.subscribe(params => {
       this.boardId = params['id' ];
     });
-
-    this.chessGameService.boardUpdates$.subscribe((updates) => {
-      this.chessGameService.activeBoard$.subscribe((activeBoardId) => {
-        this.activeBoardId = activeBoardId;
-      });
-      updates.forEach((fen, boardId) => {
-        if(fen){
-        
-          if(this.boardId === '2'){
-            this.board.setFEN(fen)
-            this.flipBoard();
-          }
-        }
-      })
-      
-    });
+    
   }
 
   onMoveMade(event: any) {
-    const fen = event.fen;
-    const boardId = this.boardId;
     if(event && event.fen){
-      this.chessGameService.updateBoard({ boardId, fen });
-    }
+    let eventData: ChessBoardEventData = {
+        boardId: this.boardId,
+        fen: event.fen
+      }
+      window.parent.postMessage(eventData, '*');
+    } 
   }
 
   flipBoard() {
@@ -60,7 +46,16 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  @HostListener('window:message', ['$event'])
+  receiveParentMessage(event: MessageEvent<string>): void {
+    if(event.data){
+      this.flipBoard();
+      this.board.setFEN(event.data);
+    }
+  }
+
   ngAfterViewInit(){
     this.cdr.detectChanges();
   }
+
 }
