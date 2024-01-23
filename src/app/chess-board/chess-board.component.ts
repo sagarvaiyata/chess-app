@@ -27,7 +27,18 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
     this.route.params.subscribe(params => {
       this.boardId = params['id' ];
     });
-    
+    const storedData = localStorage.getItem('StoredGameFen');
+    debugger;
+    if(storedData){
+      const data = JSON.parse(storedData);
+      if(this.boardId === '2'){
+        this.board.setFEN(data);
+        this.flipBoard();
+      } else {
+        this.board.setFEN(data);
+      }
+    }
+  
   }
 
   onMoveMade(event: any) {
@@ -49,13 +60,24 @@ export class ChessBoardComponent implements OnInit, AfterViewInit {
   @HostListener('window:message', ['$event'])
   receiveParentMessage(event: MessageEvent<string>): void {
     if(event.data){
-      this.flipBoard();
+      if(this.boardId === '2'){
+        this.board.setFEN(event.data);
+        this.flipBoard();
+        this.fenString = event.data;
+      } else {
       this.board.setFEN(event.data);
+      this.fenString = event.data;
+      }
     }
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: Event) {
+    debugger;
+    localStorage.setItem('StoredGameFen', this.fenString);
   }
 
   ngAfterViewInit(){
     this.cdr.detectChanges();
   }
-
 }
